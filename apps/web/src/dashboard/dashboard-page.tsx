@@ -19,7 +19,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useAppDispatch, useAppSelector } from '../app/hooks.ts';
 import { toggleSetupChecklist } from '../app/ui-slice.ts';
 import { fetchHealth } from '../shared/api/health.ts';
-import { ConnectionSettingsForm } from '../shared/components/connection-settings-form.tsx';
 
 const dashboardMetrics = [
   { label: 'Open tickets', value: '0', icon: <MedicalServicesRoundedIcon color="primary" /> },
@@ -29,10 +28,10 @@ const dashboardMetrics = [
 
 export function DashboardPage() {
   const dispatch = useAppDispatch();
-  const { apiBaseUrlOverride, showSetupChecklist } = useAppSelector((state) => state.ui);
+  const { showSetupChecklist } = useAppSelector((state) => state.ui);
   const healthQuery = useQuery({
-    queryKey: ['health', apiBaseUrlOverride],
-    queryFn: () => fetchHealth(apiBaseUrlOverride || undefined),
+    queryKey: ['health'],
+    queryFn: fetchHealth,
   });
 
   return (
@@ -76,7 +75,7 @@ export function DashboardPage() {
           </Grid>
 
           <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 7 }}>
+            <Grid size={{ xs: 12 }}>
               <Card>
                 <CardContent>
                   <Stack gap={2}>
@@ -102,13 +101,6 @@ export function DashboardPage() {
                       Zod, and Material UI so feature work can begin on a stable application shell.
                     </Typography>
                   </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, md: 5 }}>
-              <Card>
-                <CardContent>
-                  <ConnectionSettingsForm currentValue={apiBaseUrlOverride} />
                 </CardContent>
               </Card>
             </Grid>

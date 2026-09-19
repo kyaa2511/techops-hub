@@ -48,7 +48,11 @@ export const envValidationSchema = Joi.object<AppEnvironment>({
   DATABASE_PORT: Joi.number().port().required(),
   DATABASE_NAME: Joi.string().required(),
   DATABASE_USER: Joi.string().required(),
-  DATABASE_PASSWORD: Joi.string().allow('').required(),
+  DATABASE_PASSWORD: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().min(1).required(),
+    otherwise: Joi.string().allow('').required(),
+  }),
   DATABASE_SSL: Joi.boolean().default(false),
   DATABASE_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
   AUTH_PROVIDER: Joi.string().required(),

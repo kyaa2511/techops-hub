@@ -1,21 +1,13 @@
+import { apiBaseUrl } from './api-config.ts';
+
 export interface HealthResponse {
   status: 'ok';
   database: 'connected';
   timestamp: string;
 }
 
-export function normalizeApiBaseUrl(apiBaseUrl?: string): string {
-  if (!apiBaseUrl) {
-    return '';
-  }
-
-  const url = new URL(apiBaseUrl);
-  return url.origin;
-}
-
-export async function fetchHealth(apiBaseUrl?: string): Promise<HealthResponse> {
-  const normalizedBaseUrl = normalizeApiBaseUrl(apiBaseUrl);
-  const response = await fetch(`${normalizedBaseUrl}/api/v1/health`);
+export async function fetchHealth(): Promise<HealthResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/v1/health`);
 
   if (!response.ok) {
     throw new Error('Unable to reach the API health endpoint.');

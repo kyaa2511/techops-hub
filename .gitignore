@@ -2,8 +2,8 @@ node_modules/
 coverage/
 dist/
 .tmp/
-.env
-.env.local
+.env*
+!.env.example
 apps/*/node_modules/
 apps/*/dist/
 apps/*/coverage/
