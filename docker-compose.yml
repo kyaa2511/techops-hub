@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: techops-hub-postgres
+    environment:
+      POSTGRES_DB: techops_hub
+      POSTGRES_USER: techops_hub
+      POSTGRES_PASSWORD: techops_hub
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U techops_hub -d techops_hub']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres-data:

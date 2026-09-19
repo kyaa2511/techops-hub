@@ -1,0 +1,13 @@
+node_modules/
+coverage/
+dist/
+.tmp/
+.env
+.env.local
+apps/*/node_modules/
+apps/*/dist/
+apps/*/coverage/
+apps/*/.vite/
+apps/*/test-results/
+*.log
+.DS_Store

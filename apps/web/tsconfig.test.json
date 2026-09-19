@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "verbatimModuleSyntax": false
+  },
+  "include": [
+    "src",
+    "src/test"
+  ]
+}
