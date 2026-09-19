@@ -13,7 +13,11 @@ export function createDataSourceOptions(env: AppEnvironment): DataSourceOptions 
     synchronize: false,
     migrationsRun: false,
     migrations: ['dist/database/migrations/*.js'],
-    ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: env.DATABASE_SSL
+      ? {
+          rejectUnauthorized: env.DATABASE_SSL_REJECT_UNAUTHORIZED,
+        }
+      : false,
   };
 }
 

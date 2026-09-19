@@ -9,6 +9,8 @@ export interface AppEnvironment {
   DATABASE_NAME: string;
   DATABASE_USER: string;
   DATABASE_PASSWORD: string;
+  DATABASE_SSL: boolean;
+  DATABASE_SSL_REJECT_UNAUTHORIZED: boolean;
   AUTH_PROVIDER: string;
 }
 
@@ -47,6 +49,8 @@ export const envValidationSchema = Joi.object<AppEnvironment>({
   DATABASE_NAME: Joi.string().required(),
   DATABASE_USER: Joi.string().required(),
   DATABASE_PASSWORD: Joi.string().allow('').required(),
+  DATABASE_SSL: Joi.boolean().default(false),
+  DATABASE_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
   AUTH_PROVIDER: Joi.string().required(),
 }).unknown(true);
 

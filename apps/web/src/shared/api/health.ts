@@ -4,8 +4,17 @@ export interface HealthResponse {
   timestamp: string;
 }
 
+export function normalizeApiBaseUrl(apiBaseUrl?: string): string {
+  if (!apiBaseUrl) {
+    return '';
+  }
+
+  const url = new URL(apiBaseUrl);
+  return url.origin;
+}
+
 export async function fetchHealth(apiBaseUrl?: string): Promise<HealthResponse> {
-  const normalizedBaseUrl = apiBaseUrl ? apiBaseUrl.replace(/\/+$/, '') : '';
+  const normalizedBaseUrl = normalizeApiBaseUrl(apiBaseUrl);
   const response = await fetch(`${normalizedBaseUrl}/api/v1/health`);
 
   if (!response.ok) {

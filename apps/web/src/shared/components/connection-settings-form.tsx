@@ -7,9 +7,21 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useAppDispatch } from '../../app/hooks.ts';
 import { setApiBaseUrlOverride } from '../../app/ui-slice.ts';
+import { normalizeApiBaseUrl } from '../api/health.ts';
 
 const connectionSettingsSchema = z.object({
-  apiBaseUrl: z.union([z.literal(''), z.url()]),
+  apiBaseUrl: z
+    .string()
+    .trim()
+    .refine((value) => {
+      if (value === '') {
+        return true;
+      }
+
+      const url = new URL(value);
+      return url.pathname === '/' && url.search === '' && url.hash === '';
+    }, 'Enter an origin only, for example https://api.techopshub.example')
+    .refine((value) => value === '' || /^https?:\/\//.test(value), 'Use an http or https origin.'),
 });
 
 type ConnectionSettingsValues = z.infer<typeof connectionSettingsSchema>;
@@ -37,7 +49,7 @@ export function ConnectionSettingsForm({ currentValue }: ConnectionSettingsFormP
   }, [currentValue, reset]);
 
   const onSubmit = (values: ConnectionSettingsValues) => {
-    dispatch(setApiBaseUrlOverride(values.apiBaseUrl));
+    dispatch(setApiBaseUrlOverride(values.apiBaseUrl ? normalizeApiBaseUrl(values.apiBaseUrl) : ''));
   };
 
   return (

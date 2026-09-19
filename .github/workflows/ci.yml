@@ -38,6 +38,8 @@ jobs:
       DATABASE_NAME: techops_hub
       DATABASE_USER: techops_hub
       DATABASE_PASSWORD: techops_hub
+      DATABASE_SSL: false
+      DATABASE_SSL_REJECT_UNAUTHORIZED: true
       AUTH_PROVIDER: test
 
     steps:

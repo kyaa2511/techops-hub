@@ -18,6 +18,10 @@ import { createTypeOrmModuleOptions } from './database.config';
           DATABASE_NAME: configService.get('DATABASE_NAME', { infer: true }),
           DATABASE_USER: configService.get('DATABASE_USER', { infer: true }),
           DATABASE_PASSWORD: configService.get('DATABASE_PASSWORD', { infer: true }),
+          DATABASE_SSL: configService.get('DATABASE_SSL', { infer: true }),
+          DATABASE_SSL_REJECT_UNAUTHORIZED: configService.get('DATABASE_SSL_REJECT_UNAUTHORIZED', {
+            infer: true,
+          }),
           AUTH_PROVIDER: configService.get('AUTH_PROVIDER', { infer: true }),
         }),
     }),
