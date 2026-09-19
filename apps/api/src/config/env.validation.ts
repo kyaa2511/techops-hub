@@ -15,7 +15,33 @@ export interface AppEnvironment {
 export const envValidationSchema = Joi.object<AppEnvironment>({
   NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
   PORT: Joi.number().port().default(3000),
-  APP_ORIGIN: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
+  APP_ORIGIN: Joi.string()
+    .required()
+    .custom((value: string, helpers) => {
+      const origins = value
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+
+      if (origins.length === 0) {
+        return helpers.error('any.invalid');
+      }
+
+      for (const origin of origins) {
+        const { error } = Joi.string()
+          .uri({ scheme: ['http', 'https'] })
+          .validate(origin);
+
+        if (error) {
+          return helpers.error('any.invalid');
+        }
+      }
+
+      return value;
+    }, 'comma separated origins')
+    .messages({
+      'any.invalid': 'APP_ORIGIN must contain one or more comma-separated http/https origins.',
+    }),
   DATABASE_HOST: Joi.string().hostname().required(),
   DATABASE_PORT: Joi.number().port().required(),
   DATABASE_NAME: Joi.string().required(),

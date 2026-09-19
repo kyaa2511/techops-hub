@@ -11,3 +11,5 @@ apps/*/.vite/
 apps/*/test-results/
 *.log
 .DS_Store
+
+*.tsbuildinfo

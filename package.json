@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"npm run start:dev --workspace @techops-hub/api\" \"npm run dev --workspace @techops-hub/web\"",

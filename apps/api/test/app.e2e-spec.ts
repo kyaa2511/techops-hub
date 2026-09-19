@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { configureApp } from '../src/bootstrap';
 import { HealthController } from '../src/health/health.controller';
 import { HealthService } from '../src/health/health.service';
 
@@ -9,6 +10,8 @@ describe('Health endpoint (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    process.env.APP_ORIGIN = 'http://localhost:5173,http://127.0.0.1:5173';
+
     const moduleRef = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [
@@ -26,7 +29,7 @@ describe('Health endpoint (e2e)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api/v1');
+    configureApp(app);
     await app.init();
   });
 
@@ -43,5 +46,9 @@ describe('Health endpoint (e2e)', () => {
         database: 'connected',
         timestamp: '2026-09-19T00:00:00.000Z',
       });
+  });
+
+  it('exposes swagger UI with the production bootstrap configuration', async () => {
+    await request(app.getHttpServer()).get('/api/docs').expect(200);
   });
 });
