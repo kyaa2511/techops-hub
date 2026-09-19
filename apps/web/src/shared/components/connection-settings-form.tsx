@@ -18,10 +18,25 @@ const connectionSettingsSchema = z.object({
         return true;
       }
 
-      const url = new URL(value);
-      return url.pathname === '/' && url.search === '' && url.hash === '';
-    }, 'Enter an origin only, for example https://api.techopshub.example')
-    .refine((value) => value === '' || /^https?:\/\//.test(value), 'Use an http or https origin.'),
+      try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol);
+      } catch {
+        return false;
+      }
+    }, 'Use an http or https origin.')
+    .refine((value) => {
+      if (value === '') {
+        return true;
+      }
+
+      try {
+        const url = new URL(value);
+        return url.pathname === '/' && url.search === '' && url.hash === '';
+      } catch {
+        return false;
+      }
+    }, 'Enter an origin only, for example https://api.techopshub.example'),
 });
 
 type ConnectionSettingsValues = z.infer<typeof connectionSettingsSchema>;
