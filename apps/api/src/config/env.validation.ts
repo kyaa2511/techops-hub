@@ -11,7 +11,9 @@ export interface AppEnvironment {
   DATABASE_PASSWORD: string;
   DATABASE_SSL: boolean;
   DATABASE_SSL_REJECT_UNAUTHORIZED: boolean;
-  AUTH_PROVIDER: string;
+  AUTH_PROVIDER: 'clerk' | 'test';
+  CLERK_PUBLISHABLE_KEY?: string;
+  CLERK_SECRET_KEY?: string;
 }
 
 export const envValidationSchema = Joi.object<AppEnvironment>({
@@ -51,7 +53,17 @@ export const envValidationSchema = Joi.object<AppEnvironment>({
   DATABASE_PASSWORD: Joi.string().allow('').required(),
   DATABASE_SSL: Joi.boolean().default(false),
   DATABASE_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
-  AUTH_PROVIDER: Joi.string().required(),
+  AUTH_PROVIDER: Joi.string().valid('clerk', 'test').required(),
+  CLERK_PUBLISHABLE_KEY: Joi.string().when('AUTH_PROVIDER', {
+    is: 'clerk',
+    then: Joi.string().trim().required(),
+    otherwise: Joi.string().trim().optional(),
+  }),
+  CLERK_SECRET_KEY: Joi.string().when('AUTH_PROVIDER', {
+    is: 'clerk',
+    then: Joi.string().trim().required(),
+    otherwise: Joi.string().trim().optional(),
+  }),
 }).unknown(true);
 
 export function validateEnvironment(env: NodeJS.ProcessEnv): AppEnvironment {
