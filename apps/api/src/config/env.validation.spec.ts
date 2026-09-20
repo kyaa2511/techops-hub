@@ -30,4 +30,36 @@ describe('validateEnvironment', () => {
       validateEnvironment({ ...baseEnvironment, NODE_ENV: 'production', DATABASE_PASSWORD: 'secret' }),
     ).toMatchObject({ NODE_ENV: 'production', DATABASE_PASSWORD: 'secret' });
   });
+
+  it('requires Clerk credentials when Clerk is the auth provider', () => {
+    expect(() => validateEnvironment({ ...baseEnvironment, AUTH_PROVIDER: 'clerk' })).toThrow(
+      'Invalid environment configuration',
+    );
+  });
+
+  it('rejects blank Clerk credentials when Clerk is the auth provider', () => {
+    expect(() =>
+      validateEnvironment({
+        ...baseEnvironment,
+        AUTH_PROVIDER: 'clerk',
+        CLERK_PUBLISHABLE_KEY: '   ',
+        CLERK_SECRET_KEY: 'sk_test_placeholder',
+      }),
+    ).toThrow('Invalid environment configuration');
+  });
+
+  it('accepts Clerk credentials when Clerk is the auth provider', () => {
+    expect(
+      validateEnvironment({
+        ...baseEnvironment,
+        AUTH_PROVIDER: 'clerk',
+        CLERK_PUBLISHABLE_KEY: 'pk_test_placeholder',
+        CLERK_SECRET_KEY: 'sk_test_placeholder',
+      }),
+    ).toMatchObject({ AUTH_PROVIDER: 'clerk' });
+  });
+
+  it('does not require Clerk credentials in test mode', () => {
+    expect(validateEnvironment(baseEnvironment)).not.toHaveProperty('CLERK_SECRET_KEY');
+  });
 });
