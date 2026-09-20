@@ -52,6 +52,7 @@ The API runs on `http://localhost:3000`, Swagger is available at `http://localho
 npm run lint
 npm run typecheck
 npm test
+npm run test:e2e
 npm run build
 curl http://localhost:3000/api/v1/health
 ```
@@ -76,6 +77,7 @@ Expected health response shape:
 - `npm run lint` — lint all workspaces
 - `npm run typecheck` — type-check all workspaces
 - `npm test` — run all workspace tests
+- `npm run test:e2e` — run the database-backed API integration tests
 - `npm run build` — build all workspaces
 
 ## Sprint 0 Deliverables
