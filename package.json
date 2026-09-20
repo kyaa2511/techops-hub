@@ -1,0 +1,30 @@
+{
+  "name": "techops-hub",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm run start:dev --workspace @techops-hub/api\" \"npm run dev --workspace @techops-hub/web\"",
+    "dev:api": "npm run start:dev --workspace @techops-hub/api",
+    "dev:web": "npm run dev --workspace @techops-hub/web",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace @techops-hub/api",
+    "migration:run": "npm run migration:run --workspace @techops-hub/api",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "types": [
+      "jest",
+      "node",
+      "vite/client"
+    ],
+    "verbatimModuleSyntax": false
+  },
+  "include": [
+    "src",
+    "src/test"
+  ]
+}
