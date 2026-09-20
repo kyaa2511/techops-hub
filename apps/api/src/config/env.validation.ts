@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
 export interface AppEnvironment {
   NODE_ENV: 'development' | 'test' | 'production';
@@ -48,11 +48,7 @@ export const envValidationSchema = Joi.object<AppEnvironment>({
   DATABASE_PORT: Joi.number().port().required(),
   DATABASE_NAME: Joi.string().required(),
   DATABASE_USER: Joi.string().required(),
-  DATABASE_PASSWORD: Joi.when('NODE_ENV', {
-    is: 'production',
-    then: Joi.string().min(1).required(),
-    otherwise: Joi.string().allow('').required(),
-  }),
+  DATABASE_PASSWORD: Joi.string().allow('').required(),
   DATABASE_SSL: Joi.boolean().default(false),
   DATABASE_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
   AUTH_PROVIDER: Joi.string().required(),
@@ -66,6 +62,10 @@ export function validateEnvironment(env: NodeJS.ProcessEnv): AppEnvironment {
 
   if (error) {
     throw new Error(`Invalid environment configuration: ${error.message}`);
+  }
+
+  if (value.NODE_ENV === 'production' && value.DATABASE_PASSWORD === '') {
+    throw new Error('Invalid environment configuration: DATABASE_PASSWORD is required in production.');
   }
 
   return value as AppEnvironment;

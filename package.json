@@ -20,7 +20,8 @@
     "db:down": "docker compose down"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
   },
   "engines": {
     "node": ">=22.0.0",
