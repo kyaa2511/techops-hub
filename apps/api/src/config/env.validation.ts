@@ -54,16 +54,8 @@ export const envValidationSchema = Joi.object<AppEnvironment>({
   DATABASE_SSL: Joi.boolean().default(false),
   DATABASE_SSL_REJECT_UNAUTHORIZED: Joi.boolean().default(true),
   AUTH_PROVIDER: Joi.string().valid('clerk', 'test').required(),
-  CLERK_PUBLISHABLE_KEY: Joi.string().when('AUTH_PROVIDER', {
-    is: 'clerk',
-    then: Joi.string().trim().required(),
-    otherwise: Joi.string().trim().optional(),
-  }),
-  CLERK_SECRET_KEY: Joi.string().when('AUTH_PROVIDER', {
-    is: 'clerk',
-    then: Joi.string().trim().required(),
-    otherwise: Joi.string().trim().optional(),
-  }),
+  CLERK_PUBLISHABLE_KEY: Joi.string().allow('').optional(),
+  CLERK_SECRET_KEY: Joi.string().allow('').optional(),
 }).unknown(true);
 
 export function validateEnvironment(env: NodeJS.ProcessEnv): AppEnvironment {
@@ -78,6 +70,16 @@ export function validateEnvironment(env: NodeJS.ProcessEnv): AppEnvironment {
 
   if (value.NODE_ENV === 'production' && value.DATABASE_PASSWORD === '') {
     throw new Error('Invalid environment configuration: DATABASE_PASSWORD is required in production.');
+  }
+
+  if (value.AUTH_PROVIDER === 'clerk') {
+    if (!value.CLERK_PUBLISHABLE_KEY?.trim()) {
+      throw new Error('Invalid environment configuration: CLERK_PUBLISHABLE_KEY is required when AUTH_PROVIDER=clerk.');
+    }
+
+    if (!value.CLERK_SECRET_KEY?.trim()) {
+      throw new Error('Invalid environment configuration: CLERK_SECRET_KEY is required when AUTH_PROVIDER=clerk.');
+    }
   }
 
   return value as AppEnvironment;

@@ -34,7 +34,7 @@ describe('AppProviders', () => {
   });
 
   it('renders the signed-out authentication entry point', async () => {
-    render(<AppProviders />);
+    render(<AppProviders publishableKey="pk_test_explicit_fake_key" />);
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Welcome to TechOps Hub' })).toBeInTheDocument();

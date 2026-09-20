@@ -37,6 +37,17 @@ describe('validateEnvironment', () => {
     );
   });
 
+  it('rejects blank Clerk credentials when Clerk is the auth provider', () => {
+    expect(() =>
+      validateEnvironment({
+        ...baseEnvironment,
+        AUTH_PROVIDER: 'clerk',
+        CLERK_PUBLISHABLE_KEY: '   ',
+        CLERK_SECRET_KEY: 'sk_test_placeholder',
+      }),
+    ).toThrow('Invalid environment configuration');
+  });
+
   it('accepts Clerk credentials when Clerk is the auth provider', () => {
     expect(
       validateEnvironment({
