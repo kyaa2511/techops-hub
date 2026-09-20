@@ -1,6 +1,20 @@
 import { jest } from '@jest/globals';
+import type { ReactNode } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import { AppProviders } from './app/providers.tsx';
+
+jest.unstable_mockModule('@clerk/react', () => {
+  const passthrough = ({ children }: { children: ReactNode }) => children;
+
+  return {
+    ClerkProvider: passthrough,
+    SignInButton: passthrough,
+    SignUpButton: passthrough,
+    UserButton: () => null,
+    useAuth: () => ({ isLoaded: true, isSignedIn: false, getToken: async () => null }),
+  };
+});
+
+const { AppProviders } = await import('./app/providers.tsx');
 
 const fetchMock = jest.fn<typeof fetch>(async () =>
   ({
@@ -19,13 +33,12 @@ describe('AppProviders', () => {
     fetchMock.mockClear();
   });
 
-  it('renders the sprint 0 dashboard shell', async () => {
-    render(<AppProviders />);
-
-    expect(screen.getByRole('heading', { name: 'TechOps Hub' })).toBeInTheDocument();
+  it('renders the signed-out authentication entry point', async () => {
+    render(<AppProviders publishableKey="pk_test_explicit_fake_key" />);
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/v1/health');
+      expect(screen.getByRole('heading', { name: 'Welcome to TechOps Hub' })).toBeInTheDocument();
+      expect(fetchMock).not.toHaveBeenCalled();
     });
   });
 });

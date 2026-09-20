@@ -1,12 +1,23 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { clerkMiddleware } from '@clerk/express';
 
 export function configureApp(app: INestApplication): void {
   const allowedOrigins = (process.env.APP_ORIGIN ?? '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
+
+  if (process.env.AUTH_PROVIDER === 'clerk') {
+    app.use(
+      clerkMiddleware({
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+        secretKey: process.env.CLERK_SECRET_KEY,
+        authorizedParties: allowedOrigins,
+      }),
+    );
+  }
 
   app.use(helmet());
   app.enableCors({

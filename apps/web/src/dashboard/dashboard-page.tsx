@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAppDispatch, useAppSelector } from '../app/hooks.ts';
 import { toggleSetupChecklist } from '../app/ui-slice.ts';
 import { fetchHealth } from '../shared/api/health.ts';
+import { SessionVerification } from '../auth/session-verification.tsx';
 
 const dashboardMetrics = [
   { label: 'Open tickets', value: '0', icon: <MedicalServicesRoundedIcon color="primary" /> },
@@ -73,6 +74,8 @@ export function DashboardPage() {
               </Grid>
             ))}
           </Grid>
+
+          <SessionVerification />
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
