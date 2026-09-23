@@ -15,12 +15,19 @@ jest.unstable_mockModule('@clerk/express', () => ({
 
 let AuthController: (typeof import('./auth.controller'))['AuthController'];
 let ClerkAuthGuard: (typeof import('./clerk-auth.guard'))['ClerkAuthGuard'];
+let TenantContextGuard: (typeof import('./tenant-context.guard'))['TenantContextGuard'];
 let UsersService: (typeof import('../users/users.service'))['UsersService'];
+let OrganizationsService: (typeof import('../organizations/organizations.service'))['OrganizationsService'];
+let MembershipsService: (typeof import('../memberships/memberships.service'))['MembershipsService'];
 
 beforeAll(async () => {
   ({ AuthController } = await import('./auth.controller'));
   ({ ClerkAuthGuard } = await import('./clerk-auth.guard'));
+  ({ TenantContextGuard } = await import('./tenant-context.guard'));
   ({ UsersService } = await import('../users/users.service'));
+  ({ OrganizationsService } =
+    await import('../organizations/organizations.service'));
+  ({ MembershipsService } = await import('../memberships/memberships.service'));
 });
 
 describe('AuthController', () => {
@@ -85,8 +92,20 @@ describe('AuthController', () => {
       providers: [
         ClerkAuthGuard,
         {
+          provide: TenantContextGuard,
+          useValue: { canActivate: () => true },
+        },
+        {
           provide: UsersService,
           useValue: usersService,
+        },
+        {
+          provide: OrganizationsService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: MembershipsService,
+          useValue: { findByUserAndOrganization: jest.fn() },
         },
       ],
     }).compile();
@@ -120,8 +139,20 @@ describe('AuthController', () => {
       providers: [
         ClerkAuthGuard,
         {
+          provide: TenantContextGuard,
+          useValue: { canActivate: () => true },
+        },
+        {
           provide: UsersService,
           useValue: usersService,
+        },
+        {
+          provide: OrganizationsService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: MembershipsService,
+          useValue: { findByUserAndOrganization: jest.fn() },
         },
       ],
     }).compile();

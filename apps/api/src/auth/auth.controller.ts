@@ -9,6 +9,8 @@ import {
 import { UsersService } from '../users/users.service';
 import { AuthenticatedRequest } from './authenticated-identity';
 import { ClerkAuthGuard } from './clerk-auth.guard';
+import { TenantContextGuard } from './tenant-context.guard';
+import { TenantRequest } from './tenant-context';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +34,24 @@ export class AuthController {
       authenticated: true,
       clerkUserId,
       userId: user.id,
+    };
+  }
+
+  @Get('context')
+  @UseGuards(ClerkAuthGuard, TenantContextGuard)
+  getContext(@Req() request: TenantRequest) {
+    const context = request.tenantContext;
+
+    if (!context) {
+      throw new UnauthorizedException();
+    }
+
+    return {
+      authenticated: true,
+      userId: context.user.id,
+      organizationId: context.organization.id,
+      membershipId: context.membership.id,
+      role: context.membership.role,
     };
   }
 }
