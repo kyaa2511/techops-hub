@@ -6,6 +6,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
@@ -43,11 +44,11 @@ export class Membership {
 
   @ManyToOne(() => User, (user) => user.memberships, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
-  user!: User;
+  user!: Relation<User>;
 
   @ManyToOne(() => Organization, (organization) => organization.memberships, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'organizationId', referencedColumnName: 'id' })
-  organization!: Organization;
+  organization!: Relation<Organization>;
 }

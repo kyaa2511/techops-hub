@@ -4,6 +4,7 @@ import {
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { Membership } from '../memberships/membership.entity';
@@ -32,5 +33,5 @@ export class User {
   updatedAt!: Date;
 
   @OneToMany(() => Membership, (membership) => membership.user)
-  memberships!: Membership[];
+  memberships!: Relation<Membership[]>;
 }
