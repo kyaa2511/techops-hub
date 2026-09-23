@@ -34,11 +34,14 @@ describe('AuthController', () => {
   let app: INestApplication;
   const usersService = {
     findByClerkUserId: jest.fn<UsersServiceType['findByClerkUserId']>(),
+    provisionByClerkUserId:
+      jest.fn<UsersServiceType['provisionByClerkUserId']>(),
   };
 
   beforeEach(() => {
     getAuthMock.mockReset();
     usersService.findByClerkUserId.mockReset();
+    usersService.provisionByClerkUserId.mockReset();
   });
 
   afterEach(async () => {
@@ -161,5 +164,93 @@ describe('AuthController', () => {
 
     await request(app.getHttpServer()).get('/auth/session').expect(401);
     expect(usersService.findByClerkUserId).not.toHaveBeenCalled();
+  });
+
+  it('provisions a verified Clerk user without tenant context', async () => {
+    getAuthMock.mockReturnValue({
+      userId: 'user_123',
+    } as ReturnType<typeof getAuth>);
+    usersService.provisionByClerkUserId.mockResolvedValue({
+      user: {
+        id: 'local-user-id',
+        clerkUserId: 'user_123',
+      } as User,
+      created: true,
+    });
+
+    const moduleRef = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [
+        ClerkAuthGuard,
+        {
+          provide: TenantContextGuard,
+          useValue: { canActivate: () => true },
+        },
+        {
+          provide: UsersService,
+          useValue: usersService,
+        },
+        {
+          provide: OrganizationsService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: MembershipsService,
+          useValue: { findByUserAndOrganization: jest.fn() },
+        },
+      ],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    await app.init();
+
+    await request(app.getHttpServer())
+      .post('/auth/provision?clerkUserId=attacker_user')
+      .send({ clerkUserId: 'body_attacker_user' })
+      .set('Authorization', 'verified')
+      .set('x-clerk-user-id', 'header_attacker_user')
+      .expect(200)
+      .expect({
+        userId: 'local-user-id',
+        clerkUserId: 'user_123',
+        created: true,
+      });
+    expect(usersService.provisionByClerkUserId).toHaveBeenCalledWith(
+      'user_123',
+    );
+  });
+
+  it('rejects unauthenticated provisioning before invoking the service', async () => {
+    getAuthMock.mockReturnValue({ userId: null } as ReturnType<typeof getAuth>);
+
+    const moduleRef = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [
+        ClerkAuthGuard,
+        {
+          provide: UsersService,
+          useValue: usersService,
+        },
+        {
+          provide: TenantContextGuard,
+          useValue: { canActivate: () => true },
+        },
+        {
+          provide: OrganizationsService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: MembershipsService,
+          useValue: { findByUserAndOrganization: jest.fn() },
+        },
+      ],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    await app.init();
+
+    await request(app.getHttpServer())
+      .post('/auth/provision')
+      .send({ clerkUserId: 'attacker_user' })
+      .expect(401);
+    expect(usersService.provisionByClerkUserId).not.toHaveBeenCalled();
   });
 });
