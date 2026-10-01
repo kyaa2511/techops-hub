@@ -1,11 +1,11 @@
 import { CssBaseline, ThemeProvider } from '@mui/material';
-import { ClerkProvider } from '@clerk/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router.tsx';
 import { store } from './store.ts';
 import { appTheme } from './theme.ts';
+import { AuthConfigurationContext } from '../auth/auth-configuration.ts';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,14 +25,10 @@ export interface AppProvidersProps {
 }
 
 export function AppProviders({ publishableKey }: AppProvidersProps = {}) {
-  const clerkPublishableKey = (publishableKey ?? import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)?.trim();
+  const clerkPublishableKey = (publishableKey ?? import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY)?.trim();
 
-  if (!clerkPublishableKey) {
-    throw new Error('VITE_CLERK_PUBLISHABLE_KEY is required to start the web application.');
-  }
-
-  return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+  const application = (
+    <AuthConfigurationContext.Provider value={clerkPublishableKey}>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={appTheme}>
@@ -41,6 +37,7 @@ export function AppProviders({ publishableKey }: AppProvidersProps = {}) {
           </ThemeProvider>
         </QueryClientProvider>
       </Provider>
-    </ClerkProvider>
+    </AuthConfigurationContext.Provider>
   );
+  return application;
 }
