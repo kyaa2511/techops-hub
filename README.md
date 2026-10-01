@@ -46,6 +46,14 @@ packages/
 
 The API runs on `http://localhost:3000`, Swagger is available at `http://localhost:3000/api/docs`, and the web app runs on `http://localhost:5173`.
 
+## Frontend Development Preview
+
+Run `npm run dev:web` and open `http://localhost:5173/demo` (also available at `/`). The public preview includes fictional service tickets, customer tech profiles, appointments, and invoices. It does not require the API, PostgreSQL, or a Clerk key. Ticket status changes are local to the preview and reset on reload or with the reset button.
+
+The authenticated application remains available at `/app` and requires `VITE_CLERK_PUBLISHABLE_KEY`. The preview represents planned business workflows; its sample records are not connected to backend business endpoints. Continue normal feature development in the existing API and authenticated app.
+
+For a hosted preview, configure the static host to serve `index.html` for frontend routes. Public deployment has not been configured by this change.
+
 ## Verification Commands
 
 ```bash

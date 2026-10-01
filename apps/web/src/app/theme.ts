@@ -13,6 +13,11 @@ export const appTheme = createTheme({
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 6,
   },
+  typography: {
+    fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    button: { textTransform: 'none', fontWeight: 600 },
+  },
+  components: { MuiButton: { defaultProps: { disableElevation: true } } },
 });

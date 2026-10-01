@@ -6,8 +6,9 @@ services:
       POSTGRES_DB: techops_hub
       POSTGRES_USER: techops_hub
       POSTGRES_PASSWORD: techops_hub
+      POSTGRES_HOST_AUTH_METHOD: md5
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -15,7 +16,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
 
 volumes:
   postgres-data:

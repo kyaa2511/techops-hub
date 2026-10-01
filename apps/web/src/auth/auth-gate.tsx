@@ -1,8 +1,20 @@
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/react';
+import { Alert, Box, Button, Stack, Typography } from '@mui/material';
+import { ClerkProvider, SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/react';
+import { useContext } from 'react';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+
+import { AuthConfigurationContext } from './auth-configuration.ts';
 
 export function AuthGate({ children }: { children: ReactNode }) {
+  const configured = useContext(AuthConfigurationContext);
+  if (!configured) {
+    return <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}><Alert severity="info">Workspace sign-in is not configured in this environment.</Alert><Button component={Link} to="/demo" sx={{ mt: 2 }}>Explore the demo</Button></Box>;
+  }
+  return <ClerkProvider publishableKey={configured}><ConfiguredAuthGate>{children}</ConfiguredAuthGate></ClerkProvider>;
+}
+
+function ConfiguredAuthGate({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) {
@@ -25,6 +37,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
               <Button variant="outlined">Sign up</Button>
             </SignUpButton>
           </Stack>
+          <Button component={Link} to="/demo">Explore the public demo</Button>
         </Stack>
       </Box>
     );
