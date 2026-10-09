@@ -30,6 +30,27 @@ export class OrganizationsService {
     });
   }
 
+  async listForClerkUser(clerkUserId: string) {
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: { clerkUserId },
+    });
+    if (!user) {
+      throw new NotFoundException('Authenticated user was not found');
+    }
+    const memberships = await this.dataSource.getRepository(Membership).find({
+      where: { userId: user.id },
+      relations: { organization: true },
+      order: { organizationId: 'ASC' },
+    });
+    return memberships.map((membership) => ({
+      organizationId: membership.organization.id,
+      name: membership.organization.name,
+      slug: membership.organization.slug,
+      membershipId: membership.id,
+      role: membership.role,
+    }));
+  }
+
   async createForClerkUser(
     clerkUserId: string,
     input: CreateOrganizationRequestDto,

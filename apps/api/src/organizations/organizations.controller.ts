@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
   UnauthorizedException,
@@ -15,6 +16,14 @@ import { OrganizationsService } from './organizations.service';
 @Controller('organizations')
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
+
+  @Get()
+  @UseGuards(ClerkAuthGuard)
+  async list(@Req() request: AuthenticatedRequest) {
+    const clerkUserId = request.authenticatedIdentity?.clerkUserId;
+    if (!clerkUserId) throw new UnauthorizedException();
+    return this.organizationsService.listForClerkUser(clerkUserId);
+  }
 
   @Post()
   @UseGuards(ClerkAuthGuard)

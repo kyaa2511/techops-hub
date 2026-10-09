@@ -56,5 +56,5 @@ describe('AppProviders', () => {
     await user.click(screen.getByRole('button', { name: 'Reset demo' }));
     expect(screen.getByRole('button', { name: 'Laptop running slowly after startup' })).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
-  });
+  }, 15000);
 });

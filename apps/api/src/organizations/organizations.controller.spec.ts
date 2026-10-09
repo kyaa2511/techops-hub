@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { jest } from '@jest/globals';
 import type { Request } from 'express';
@@ -30,12 +30,14 @@ beforeAll(async () => {
 describe('OrganizationsController', () => {
   let app: INestApplication;
   const organizationsService = {
+    listForClerkUser: jest.fn<OrganizationsServiceType['listForClerkUser']>(),
     createForClerkUser:
       jest.fn<OrganizationsServiceType['createForClerkUser']>(),
   };
 
   beforeEach(() => {
     getAuthMock.mockReset();
+    organizationsService.listForClerkUser.mockReset();
     organizationsService.createForClerkUser.mockReset();
   });
 
@@ -73,6 +75,13 @@ describe('OrganizationsController', () => {
       ],
     }).compile();
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     await request(app.getHttpServer())
@@ -112,6 +121,13 @@ describe('OrganizationsController', () => {
       ],
     }).compile();
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     await app.init();
 
     await request(app.getHttpServer())
@@ -120,5 +136,82 @@ describe('OrganizationsController', () => {
       .expect(401);
 
     expect(organizationsService.createForClerkUser).not.toHaveBeenCalled();
+  });
+  it.each([
+    {},
+    { name: '', slug: 'valid-slug' },
+    { name: 'x'.repeat(121), slug: 'valid-slug' },
+    { name: 123, slug: 'valid-slug' },
+    { name: 'Valid', slug: 'ab' },
+    { name: 'Valid', slug: 'x'.repeat(81) },
+    { name: 'Valid', slug: 'Invalid Slug' },
+    { name: 'Valid', slug: 'double--hyphen' },
+    { name: 'Valid', slug: 'valid-slug', userId: 'attacker' },
+    { name: 'Valid', slug: 'valid-slug', role: 'OWNER' },
+    { name: 'Valid', slug: 'valid-slug', organizationId: 'other-tenant' },
+  ])('rejects invalid onboarding input %j before persistence', async (body) => {
+    getAuthMock.mockReturnValue({ userId: 'verified_user' } as ReturnType<
+      typeof getAuth
+    >);
+    const moduleRef = await Test.createTestingModule({
+      controllers: [OrganizationsController],
+      providers: [
+        ClerkAuthGuard,
+        { provide: OrganizationsService, useValue: organizationsService },
+      ],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+    await app.init();
+
+    await request(app.getHttpServer())
+      .post('/organizations')
+      .send(body)
+      .expect(400);
+    expect(organizationsService.createForClerkUser).not.toHaveBeenCalled();
+  });
+  it('lists only the verified identity organizations without tenant context', async () => {
+    getAuthMock.mockReturnValue({ userId: 'verified_user' } as ReturnType<
+      typeof getAuth
+    >);
+    organizationsService.listForClerkUser.mockResolvedValue([]);
+    const moduleRef = await Test.createTestingModule({
+      controllers: [OrganizationsController],
+      providers: [
+        ClerkAuthGuard,
+        { provide: OrganizationsService, useValue: organizationsService },
+      ],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    await app.init();
+    await request(app.getHttpServer())
+      .get('/organizations?clerkUserId=attacker')
+      .set('x-clerk-user-id', 'attacker')
+      .expect(200)
+      .expect([]);
+    expect(organizationsService.listForClerkUser).toHaveBeenCalledWith(
+      'verified_user',
+    );
+  });
+
+  it('rejects unauthenticated organization discovery', async () => {
+    getAuthMock.mockReturnValue({ userId: null } as ReturnType<typeof getAuth>);
+    const moduleRef = await Test.createTestingModule({
+      controllers: [OrganizationsController],
+      providers: [
+        ClerkAuthGuard,
+        { provide: OrganizationsService, useValue: organizationsService },
+      ],
+    }).compile();
+    app = moduleRef.createNestApplication();
+    await app.init();
+    await request(app.getHttpServer()).get('/organizations').expect(401);
+    expect(organizationsService.listForClerkUser).not.toHaveBeenCalled();
   });
 });
