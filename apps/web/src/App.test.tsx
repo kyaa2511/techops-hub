@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import type { ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 jest.unstable_mockModule('@clerk/react', () => {
@@ -16,6 +16,9 @@ jest.unstable_mockModule('@clerk/react', () => {
 });
 
 const { AppProviders } = await import('./app/providers.tsx');
+const { createMemoryRouter, RouterProvider } = await import('react-router-dom');
+const { AuthGate } = await import('./auth/auth-gate.tsx');
+const { AuthConfigurationContext } = await import('./auth/auth-configuration.ts');
 
 const fetchMock = jest.fn<typeof fetch>(async () =>
   ({
@@ -28,10 +31,40 @@ const fetchMock = jest.fn<typeof fetch>(async () =>
   }) as Response,
 );
 
+function renderWorkspaceRoute(publishableKey?: string) {
+  const router = createMemoryRouter([
+    {
+      path: '/app',
+      element: <AuthGate><div>Protected workspace</div></AuthGate>,
+    },
+  ], { initialEntries: ['/app'] });
+
+  return render(
+    <AuthConfigurationContext.Provider value={publishableKey}>
+      <RouterProvider router={router} />
+    </AuthConfigurationContext.Provider>,
+  );
+}
+
 describe('AppProviders', () => {
   beforeEach(() => {
     global.fetch = fetchMock;
     fetchMock.mockClear();
+  });
+
+  it('shows the signed-out entry point at /app when Clerk is configured', async () => {
+    renderWorkspaceRoute('pk_test_explicit_fake_key');
+
+    expect(await screen.findByText('Sign in or create an account to continue.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign up' })).toBeInTheDocument();
+  });
+
+  it('shows the unconfigured-key fallback at /app', async () => {
+    renderWorkspaceRoute();
+
+    expect(await screen.findByText('Workspace sign-in is not configured in this environment.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Explore the demo' })).toHaveAttribute('href', '/demo');
   });
 
   it('renders the public demo without making API requests', async () => {
@@ -56,5 +89,26 @@ describe('AppProviders', () => {
     await user.click(screen.getByRole('button', { name: 'Reset demo' }));
     expect(screen.getByRole('button', { name: 'Laptop running slowly after startup' })).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
+  }, 15000);
+
+  it('removes a completed ticket from attention and updates the count', async () => {
+    const user = userEvent.setup();
+    render(<AppProviders />);
+    const attention = within(screen.getByRole('heading', { name: 'Needs attention' }).closest('section')!);
+
+    expect(attention.getByText('2', { selector: '.attention-count' })).toBeInTheDocument();
+    await user.click(attention.getByRole('button', { name: /Replace laptop battery/ }));
+    await user.click(screen.getByRole('combobox', { name: 'Ticket status' }));
+    await user.click(screen.getByRole('option', { name: 'Completed' }));
+
+    expect(attention.queryByRole('button', { name: /Replace laptop battery/ })).not.toBeInTheDocument();
+    expect(attention.getByText('1', { selector: '.attention-count' })).toBeInTheDocument();
+  }, 15000);
+
+  it('marks the active demo navigation link as the current page', () => {
+    render(<AppProviders />);
+
+    expect(screen.getByRole('link', { name: /Overview/ })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: /Service tickets/ })).not.toHaveAttribute('aria-current');
   });
 });

@@ -52,7 +52,7 @@ Run `npm run dev:web` and open `http://localhost:5173/demo` (also available at `
 
 The authenticated application remains available at `/app` and requires `VITE_CLERK_PUBLISHABLE_KEY`. The preview represents planned business workflows; its sample records are not connected to backend business endpoints. Continue normal feature development in the existing API and authenticated app.
 
-For a hosted preview, configure the static host to serve `index.html` for frontend routes. Public deployment has not been configured by this change.
+The public demo is hosted at `https://techops.katanayaa.dev/demo` using Cloudflare Workers Static Assets. To publish updates, run `npm run deploy:demo --workspace @techops-hub/web` after authenticating with Wrangler. This builds in `demo` mode, disables Clerk sign-in for the preview, and uploads only `apps/web/dist`. The API and database are not deployed. `apps/web/wrangler.demo.jsonc` configures the custom domain and frontend route fallback.
 
 ## Verification Commands
 

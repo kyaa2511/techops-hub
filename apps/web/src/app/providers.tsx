@@ -25,7 +25,9 @@ export interface AppProvidersProps {
 }
 
 export function AppProviders({ publishableKey }: AppProvidersProps = {}) {
-  const clerkPublishableKey = (publishableKey ?? import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY)?.trim();
+  const clerkPublishableKey = import.meta.env?.MODE === 'demo'
+    ? undefined
+    : (publishableKey ?? import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY)?.trim();
 
   const application = (
     <AuthConfigurationContext.Provider value={clerkPublishableKey}>
