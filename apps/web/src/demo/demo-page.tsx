@@ -43,6 +43,22 @@ export function DemoPage() {
   const invoice = invoices.find((item) => item.id === selectedInvoice);
   const matchingTickets = tickets.filter((item) => `${item.id} ${item.title} ${customerFor(item.customerId).name} ${item.device}`.toLowerCase().includes(search.toLowerCase()) && (filter === 'All statuses' || item.status === filter));
   const outstanding = invoices.filter((item) => item.status !== 'Paid').reduce((sum, item) => sum + item.amount, 0);
+  const attentionItems = [
+    ...invoices.filter((item) => item.status === 'Overdue').map((item) => ({
+      id: item.id,
+      label: `Invoice ${item.id} is overdue`,
+      detail: `${customerFor(item.customerId).name} / ${money(item.amount)}`,
+      tone: 'amber',
+      onClick: () => setSelectedInvoice(item.id),
+    })),
+    ...tickets.filter((item) => item.status === 'Awaiting parts').map((item) => ({
+      id: item.id,
+      label: `${item.title} — Awaiting parts`,
+      detail: `${customerFor(item.customerId).name} / ${item.id}`,
+      tone: 'violet',
+      onClick: () => setSelectedTicket(item.id),
+    })),
+  ];
 
   const ticketTable = (overview = false) => <div className="table-scroll"><table>
     <thead><tr><th>Service request</th><th>Customer</th><th>Status</th><th>Priority</th><th>Assigned to</th></tr></thead>
@@ -62,7 +78,7 @@ export function DemoPage() {
       <Link to="/demo" className="brand"><img src="/techops-logo.png" alt="" /><span>TechOps <b>Hub</b></span></Link>
       <div className="workspace-label"><span className="workspace-avatar">W</span><div><strong>Workshop Collective</strong><span>Sample workspace</span></div></div>
       <span className="nav-caption">WORKSPACE</span>
-      <nav aria-label="Workspace">{navigation.map(({ id, label, icon: Icon }) => <Link key={id} to={id === 'overview' ? '/demo' : `/demo/${id}`} className={`nav-item ${view === id ? 'active' : ''}`} onClick={() => { setSearch(''); setFilter('All statuses'); }}><Icon fontSize="small" />{label}{id === 'tickets' && <span className="nav-count">{tickets.filter((item) => item.status !== 'Completed').length}</span>}</Link>)}</nav>
+      <nav aria-label="Workspace">{navigation.map(({ id, label, icon: Icon }) => <Link key={id} to={id === 'overview' ? '/demo' : `/demo/${id}`} className={`nav-item ${view === id ? 'active' : ''}`} aria-current={view === id ? 'page' : undefined} onClick={() => { setSearch(''); setFilter('All statuses'); }}><Icon fontSize="small" />{label}{id === 'tickets' && <span className="nav-count">{tickets.filter((item) => item.status !== 'Completed').length}</span>}</Link>)}</nav>
       <div className="sidebar-bottom"><span className="development-dot" /> Under development<Link to="/app">Sign in to your workspace <ArrowForwardRounded fontSize="small" /></Link></div>
     </aside>
     <div className="demo-main">
@@ -78,7 +94,7 @@ export function DemoPage() {
             { label: 'Customer devices', value: customers.reduce((sum, item) => sum + item.devices.length, 0), detail: `Across ${customers.length} customers`, icon: ComputerOutlined, tone: 'violet' },
           ].map(({ label, value, detail, icon: Icon, tone }) => <div className="metric" key={label}><div className="metric-top"><span>{label}</span><span className={`metric-icon ${tone}`}><Icon fontSize="small" /></span></div><strong className="metric-value">{value}</strong><span className="metric-detail">{detail}</span></div>)}</div>
           <section className="work-section"><div className="section-heading"><div><h2>Active service tickets</h2><p className="muted">Keep the next step moving.</p></div><Link className="section-link" to="/demo/tickets">All tickets <ArrowForwardRounded fontSize="small" /></Link></div>{ticketTable(true)}</section>
-          <div className="overview-lower"><section><div className="section-heading"><h2>Today's schedule</h2><Link className="section-link" to="/demo/appointments">View schedule <ArrowForwardRounded fontSize="small" /></Link></div>{schedule()}</section><section className="attention-section"><div className="section-heading"><h2>Needs attention</h2><span className="attention-count">2</span></div><button className="attention-item" onClick={() => setSelectedInvoice('INV-207')}><span className="attention-marker amber" /><div><strong>Invoice INV-207 is overdue</strong><p>Avery Morgan / {money(245)}</p></div><ArrowForwardRounded fontSize="small" /></button><button className="attention-item" onClick={() => setSelectedTicket('TH-1040')}><span className="attention-marker violet" /><div><strong>Battery replacement awaiting parts</strong><p>Jordan Ellis / TH-1040</p></div><ArrowForwardRounded fontSize="small" /></button><div className="activity-note"><span className="development-dot" /><span>TH-1038 completed yesterday<br /><strong>Shared project folder restored</strong></span></div></section></div>
+          <div className="overview-lower"><section><div className="section-heading"><h2>Today's schedule</h2><Link className="section-link" to="/demo/appointments">View schedule <ArrowForwardRounded fontSize="small" /></Link></div>{schedule()}</section><section className="attention-section"><div className="section-heading"><h2>Needs attention</h2><span className="attention-count">{attentionItems.length}</span></div>{attentionItems.map(({ id, label, detail, tone, onClick }) => <button className="attention-item" key={id} onClick={onClick}><span className={`attention-marker ${tone}`} /><div><strong>{label}</strong><p>{detail}</p></div><ArrowForwardRounded fontSize="small" /></button>)}<div className="activity-note"><span className="development-dot" /><span>TH-1038 completed yesterday<br /><strong>Shared project folder restored</strong></span></div></section></div>
         </>}
         {view === 'tickets' && <section><div className="filters"><TextField size="small" label="Search tickets" value={search} onChange={(event) => setSearch(event.target.value)} slotProps={{ input: { startAdornment: <SearchRounded sx={{ mr: 1, color: 'text.secondary' }} /> } }} /><TextField select size="small" label="Status" value={filter} onChange={(event) => setFilter(event.target.value)}>{['All statuses', 'In progress', 'Scheduled', 'Awaiting parts', 'Completed'].map((status) => <MenuItem key={status} value={status}>{status}</MenuItem>)}</TextField><span className="muted">{matchingTickets.length} tickets</span></div>{ticketTable()}</section>}
         {view === 'customers' && <><div className="filters"><TextField size="small" label="Search customers" value={search} onChange={(event) => setSearch(event.target.value)} /></div><div className="customer-grid">{customers.filter((item) => `${item.name} ${item.devices.join(' ')}`.toLowerCase().includes(search.toLowerCase())).map((item) => <button className="customer-card" key={item.id} onClick={() => setSelectedCustomer(item.id)}><span className="customer-avatar" style={{ background: item.color }}>{item.initials}</span><strong>{item.name}</strong><span className="muted">{item.type} / {item.location}</span><div className="customer-card-footer"><span>{item.devices.length} devices</span><ArrowForwardRounded fontSize="small" /></div></button>)}</div>{!customers.some((item) => `${item.name} ${item.devices.join(' ')}`.toLowerCase().includes(search.toLowerCase())) && <div className="empty-state">No customers match your search.</div>}</>}

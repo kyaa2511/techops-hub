@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import type { ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 jest.unstable_mockModule('@clerk/react', () => {
@@ -90,4 +90,25 @@ describe('AppProviders', () => {
     expect(screen.getByRole('button', { name: 'Laptop running slowly after startup' })).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   }, 15000);
+
+  it('removes a completed ticket from attention and updates the count', async () => {
+    const user = userEvent.setup();
+    render(<AppProviders />);
+    const attention = within(screen.getByRole('heading', { name: 'Needs attention' }).closest('section')!);
+
+    expect(attention.getByText('2', { selector: '.attention-count' })).toBeInTheDocument();
+    await user.click(attention.getByRole('button', { name: /Replace laptop battery/ }));
+    await user.click(screen.getByRole('combobox', { name: 'Ticket status' }));
+    await user.click(screen.getByRole('option', { name: 'Completed' }));
+
+    expect(attention.queryByRole('button', { name: /Replace laptop battery/ })).not.toBeInTheDocument();
+    expect(attention.getByText('1', { selector: '.attention-count' })).toBeInTheDocument();
+  }, 15000);
+
+  it('marks the active demo navigation link as the current page', () => {
+    render(<AppProviders />);
+
+    expect(screen.getByRole('link', { name: /Overview/ })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: /Service tickets/ })).not.toHaveAttribute('aria-current');
+  });
 });
