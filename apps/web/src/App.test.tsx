@@ -74,6 +74,21 @@ describe('AppProviders', () => {
       expect(screen.getByRole('heading', { name: 'Your workday, at a glance.' })).toBeInTheDocument();
       expect(fetchMock).not.toHaveBeenCalled();
     });
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('removes a completed ticket from the attention list and updates its count', async () => {
+    const user = userEvent.setup();
+    render(<AppProviders />);
+
+    expect(screen.getByText('2', { selector: '.attention-count' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Battery replacement awaiting parts/ }));
+    await user.click(screen.getByRole('combobox', { name: 'Ticket status' }));
+    await user.click(screen.getByRole('option', { name: 'Completed' }));
+    await user.click(screen.getByRole('button', { name: 'Close details' }));
+
+    expect(screen.queryByRole('button', { name: /Battery replacement awaiting parts/ })).not.toBeInTheDocument();
+    expect(screen.getByText('1', { selector: '.attention-count' })).toBeInTheDocument();
   });
 
   it('lets a visitor inspect a ticket and update only its demo status', async () => {
