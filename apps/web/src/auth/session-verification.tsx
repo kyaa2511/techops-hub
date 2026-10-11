@@ -1,3 +1,4 @@
+import { useOrganization } from './organization-context.ts';
 import { Alert } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthenticatedApi } from '../shared/api/authenticated-api.ts';
@@ -9,10 +10,11 @@ interface SessionResponse {
 
 export function SessionVerification() {
   const authenticatedFetch = useAuthenticatedApi();
+  const { identityId } = useOrganization();
   const sessionQuery = useQuery({
-    queryKey: ['auth-session'],
-    queryFn: async (): Promise<SessionResponse> => {
-      const response = await authenticatedFetch('/api/v1/auth/session');
+    queryKey: ['identity', identityId, 'auth-session'],
+    queryFn: async ({ signal }): Promise<SessionResponse> => {
+      const response = await authenticatedFetch('/api/v1/auth/session', { signal });
       if (!response.ok) {
         throw new Error(`Authenticated session request failed with status ${response.status}.`);
       }

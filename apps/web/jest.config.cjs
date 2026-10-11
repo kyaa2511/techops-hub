@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'jsdom',
+  testEnvironment: '<rootDir>/test/browser-environment.cjs',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
   moduleNameMapper: {

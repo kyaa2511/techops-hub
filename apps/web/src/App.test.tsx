@@ -102,8 +102,12 @@ describe('AppProviders', () => {
     await user.click(screen.getByRole('combobox', { name: 'Ticket status' }));
     await user.click(screen.getByRole('option', { name: 'Completed' }));
 
+    await user.click(screen.getByRole('button', { name: 'Close details' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(attention.queryByRole('button', { name: /Replace laptop battery/ })).not.toBeInTheDocument();
     expect(attention.getByText('1', { selector: '.attention-count' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reset demo' }));
+    expect(attention.getByText('2', { selector: '.attention-count' })).toBeInTheDocument();
   }, 15000);
 
   it('marks the active demo navigation link as the current page', () => {

@@ -70,3 +70,30 @@ To select or switch an organization, use an ID from this list as the
 requests. Membership is checked server-side on each request. Listing an
 organization does not grant future access after membership is revoked.
 No server-side active-organization preference is stored by discovery.
+
+### Authenticated frontend organization context
+
+The `/app` route lists the signed-in user's organizations and requires an explicit
+selection. The workspace renders only after `/auth/context` verifies the selected
+organization. Loading, empty, unprovisioned-account, discovery-error, and access-error
+states have dedicated messages; failed requests can be retried. Refreshing the
+organization list clears the selection and requires verification again.
+
+The selection is held in memory, scoped to the Clerk user and session. Reloading,
+signing out, or changing identity/session requires a fresh selection. No Clerk
+Organization or server-side active-organization preference is used.
+
+Frontend identity requests use `useAuthenticatedApi` without a tenant header.
+Tenant requests use `useOrganizationApi` within the verified organization provider;
+it sets `X-Organization-Id` from that scope and overrides caller-supplied tenant
+headers. Use `tenantQueryKey(identityId, organizationId, ...resourceParts)` and pass
+the TanStack Query `signal` to the API request. Do not use unscoped keys or keep
+previous-organization data as placeholder data. A tenant `401` or `403` clears the
+active context and its tenant queries and refreshes discovery. A resource `404`
+does not automatically revoke context; verification failures always gate access.
+
+Every Clerk user/session has an isolated authenticated QueryClient. Organization
+changes cancel and remove tenant queries and remount workspace children. Identity
+changes and sign-out cancel and clear the entire authenticated cache. Canceled
+requests cannot repopulate visible data or revoke a newer selection. Server-side
+membership checks remain the source of authorization on each tenant request.
