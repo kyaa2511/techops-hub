@@ -21,6 +21,8 @@ packages/
 - npm 10+
 - Docker / Docker Compose
 
+PostgreSQL uses host and container port `5432`, matching `.env.example`. If that host port is occupied, use a local Compose override and set `DATABASE_PORT` to the same alternate host port in your local environment.
+
 ## Local Setup
 
 1. Copy environment variables:

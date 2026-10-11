@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+import { AuthenticatedWorkspace } from './authenticated-workspace.tsx';
 import { AuthConfigurationContext } from './auth-configuration.ts';
 
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -15,13 +16,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 function ConfiguredAuthGate({ children }: { children: ReactNode }) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
 
   if (!isLoaded) {
     return null;
   }
 
-  if (!isSignedIn) {
+  if (!isSignedIn || !userId || !sessionId) {
     return (
       <Box sx={{ py: 12, textAlign: 'center' }}>
         <Stack alignItems="center" gap={2}>
@@ -48,7 +49,7 @@ function ConfiguredAuthGate({ children }: { children: ReactNode }) {
       <Stack alignItems="flex-end" sx={{ p: 2 }}>
         <UserButton />
       </Stack>
-      {children}
+      <AuthenticatedWorkspace key={`${userId}:${sessionId}`} identityId={userId}>{children}</AuthenticatedWorkspace>
     </>
   );
 }
