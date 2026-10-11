@@ -81,6 +81,7 @@ describe('AppProviders', () => {
     render(<AppProviders />);
     await user.click(screen.getByRole('button', { name: 'Laptop running slowly after startup' }));
     expect(screen.getByRole('dialog')).toHaveTextContent('TH-1042');
+    expect(document.querySelector('.demo-dialog .detail-content')).toBeInTheDocument();
     await user.click(screen.getByRole('combobox', { name: 'Ticket status' }));
     await user.click(screen.getByRole('option', { name: 'Completed' }));
     await user.click(screen.getByRole('button', { name: 'Close details' }));
