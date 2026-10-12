@@ -1,3 +1,4 @@
+import { CustomersPage } from '../customers/customers-page.tsx';
 import LanRoundedIcon from '@mui/icons-material/LanRounded';
 import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
@@ -76,6 +77,7 @@ export function DashboardPage() {
           </Grid>
 
           <SessionVerification />
+          <CustomersPage />
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12 }}>
