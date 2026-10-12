@@ -1,3 +1,4 @@
+import { CustomersModule } from './customers/customers.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { resolve } from 'node:path';
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     OrganizationsModule,
     MembershipsModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}

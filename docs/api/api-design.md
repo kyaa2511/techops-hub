@@ -97,3 +97,52 @@ changes cancel and remove tenant queries and remount workspace children. Identit
 changes and sign-out cancel and clear the entire authenticated cache. Canceled
 requests cannot repopulate visible data or revoke a newer selection. Server-side
 membership checks remain the source of authorization on each tenant request.
+
+
+## Customers foundation — Sprint 2
+
+All customer endpoints require Clerk authentication and a valid
+`X-Organization-Id`. Membership is rechecked on every request. OWNER and ADMIN
+may list, view, create, and update customers. MEMBER has no customer-directory
+access in this sprint, following the roadmap's assigned-work role; future ticket
+permissions are deferred.
+
+- `POST /api/v1/customers`: 201 with the created customer.
+- `GET /api/v1/customers?page=1&limit=25`: 200 with
+  `{ items, total, page, limit }`. Page is an integer 1–1,000,000; limit is 1–100.
+  Results are ordered by createdAt descending, then UUID descending.
+- `GET /api/v1/customers/:id`: 200 with one customer.
+- `PATCH /api/v1/customers/:id`: 200 with the updated customer. Omitted fields
+  stay unchanged; an empty patch returns the existing record without touching it.
+
+Create requires a trimmed name (1–120 characters). Optional fields are email
+(valid email, max 254), phone (max 40), address (free text, max 1,000), notes
+(max 5,000), and status (ACTIVE or INACTIVE, default ACTIVE). Optional contact
+fields accept null; PATCH null explicitly clears them. Name and status cannot be
+null. Unknown body/query fields are rejected, including ownership, IDs, and
+timestamps. Customer emails are not unique; shared family/business contact
+addresses are allowed. No hard-delete endpoint is included; set status INACTIVE.
+
+Responses contain id, organizationId, name, email, phone, address, notes, status,
+createdAt, and updatedAt. Times are ISO 8601 UTC strings. Every service operation
+requires a matching verified user/membership/organization context and checks
+OWNER/ADMIN access. The repository stays private to the Customers module.
+Reads and updates always include organizationId; create derives it exclusively
+from context and allowlists writable fields. Customer UUIDs do not grant access.
+Unknown and other-organization customer IDs both return 404 in an authorized
+tenant. Missing authentication returns 401; missing/invalid tenant headers and
+invalid input return 400; non-members/revoked memberships or MEMBER access return
+403. Existing unprovisioned-user/unknown-organization context behavior is retained.
+
+The authenticated /app workspace includes a paginated customer list and a
+details/editor dialog for OWNER/ADMIN. Queries use useOrganizationApi,
+tenantQueryKey, and AbortSignals. Saves invalidate only the current tenant's
+customer queries and abort when the workspace unmounts. A sent write may still
+complete server-side for its original tenant; cancellation suppresses stale UI
+results, rather than promising transaction rollback. Edits use last-write-wins;
+concurrency versioning and audit history are deferred.
+
+Migration: `1791676800000-CreateCustomers`, with an organization foreign key,
+status enum, timestamps, and an organization/createdAt/id index. Run the normal
+migration command before using these endpoints. Existing organizations/memberships
+and public demo data are independent of customer records.
